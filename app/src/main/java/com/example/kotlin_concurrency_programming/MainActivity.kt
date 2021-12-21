@@ -1,4 +1,4 @@
-package com.rsupport.rv.agent.chapter1
+package com.example.kotlin_concurrency_programming
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,10 +7,5 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-    }
-
-    private suspend fun createCoroutines(amount: Int) {
-        val jobs = Array<Job>()
-
     }
 }

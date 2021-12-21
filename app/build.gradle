@@ -7,7 +7,7 @@ android {
     compileSdk 31
 
     defaultConfig {
-        applicationId "com.rsupport.rv.agent.chapter1"
+        applicationId "com.example.kotlin_concurrency_programming"
         minSdk 23
         targetSdk 31
         versionCode 1
@@ -40,6 +40,4 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
 }
