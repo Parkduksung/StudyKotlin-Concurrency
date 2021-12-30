@@ -3,7 +3,6 @@ package com.example.chapter2
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.Dispatchers
@@ -22,24 +21,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        asyncLoadNews()
+    }
 
-        GlobalScope.launch(dispatcher) {
-            val resultSize = fetchRssHeadlines().size
-
-            GlobalScope.launch(Dispatchers.Main){
-                Toast.makeText(
-                    this@MainActivity,
-                    resultSize.toString(),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            Handler(Looper.getMainLooper()).post {
-                Toast.makeText(
-                    this@MainActivity,
-                    resultSize.toString(),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+    private fun asyncLoadNews() = GlobalScope.launch(dispatcher) {
+        val resultSize = fetchRssHeadlines().size
+        GlobalScope.launch(Dispatchers.Main) {
+            Toast.makeText(
+                this@MainActivity,
+                resultSize.toString(),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
