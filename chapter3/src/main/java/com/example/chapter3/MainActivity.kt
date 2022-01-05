@@ -29,15 +29,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         requests.forEach {
-            it.await()
+            it.join()
         }
 
-        val headlines = requests.flatMap {
-            it.getCompleted()
-        }
+        val headlines = requests
+            .filter { !it.isCancelled }
+            .flatMap { it.getCompleted() }
+
+        val failed = requests
+            .filter { it.isCancelled }
+            .size
 
         launch(Main) {
-            Toast.makeText(this@MainActivity, "Found ${headlines.size} News", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this@MainActivity,
+                """
+                    Found ${headlines.size} News
+                    Failed $failed News
+                """.trimIndent(),
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
     }
@@ -59,6 +70,7 @@ class MainActivity : AppCompatActivity() {
             "https://www.npr.org/rss/rss.php?id=1001",
             "http://rss.cnn.com/rss/cnn_topstories.rss",
             "http://feeds.foxnews.com/foxnews/politics?format=xml",
+            "htt:myNewsFeedError"
         )
 
     }
