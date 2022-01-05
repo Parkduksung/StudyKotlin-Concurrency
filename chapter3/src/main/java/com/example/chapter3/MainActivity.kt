@@ -1,10 +1,10 @@
 package com.example.chapter3
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Main
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import javax.xml.parsers.DocumentBuilderFactory
@@ -13,9 +13,33 @@ class MainActivity : AppCompatActivity() {
 
     private val factory = DocumentBuilderFactory.newInstance()
 
+    private val dispatcher = newFixedThreadPoolContext(2, "IO")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        asyncLoadNews()
+    }
+
+    private fun asyncLoadNews() = GlobalScope.launch {
+        val requests = mutableListOf<Deferred<List<String>>>()
+
+        feeds.mapTo(requests) {
+            asyncFetchHeadlines(it, dispatcher)
+        }
+
+        requests.forEach {
+            it.await()
+        }
+
+        val headlines = requests.flatMap {
+            it.getCompleted()
+        }
+
+        launch(Main) {
+            Toast.makeText(this@MainActivity, "Found ${headlines.size} News", Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     private fun asyncFetchHeadlines(feed: String, dispatcher: CoroutineDispatcher) =
@@ -28,4 +52,14 @@ class MainActivity : AppCompatActivity() {
                 .filter { "item" == it.tagName }
                 .map { it.getElementsByTagName("title").item(0).textContent }
         }
+
+    companion object {
+
+        private val feeds = listOf(
+            "https://www.npr.org/rss/rss.php?id=1001",
+            "http://rss.cnn.com/rss/cnn_topstories.rss",
+            "http://feeds.foxnews.com/foxnews/politics?format=xml",
+        )
+
+    }
 }
