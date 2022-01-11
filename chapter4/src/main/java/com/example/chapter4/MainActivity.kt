@@ -1,15 +1,23 @@
 package com.example.chapter4
 
 import android.os.Bundle
-import android.widget.ProgressBar
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.core.view.isVisible
-import androidx.recyclerview.widget.RecyclerView
-import com.example.chapter4.adapter.ArticleAdapter
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.example.chapter4.model.Article
 import com.example.chapter4.model.Feed
 import kotlinx.coroutines.*
@@ -24,53 +32,33 @@ class MainActivity : ComponentActivity() {
 
     private val dispatcher = newFixedThreadPoolContext(2, "IO")
 
-    private val articleAdapter = ArticleAdapter()
-
-    private val rvArticle by lazy { findViewById<RecyclerView>(R.id.rv_article) }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Hello()
-            }
-        }
-    }
-
-
-    private fun initUi() {
-        rvArticle.run {
-            adapter = articleAdapter
-        }
         asyncLoadNews()
     }
 
     private fun asyncLoadNews() = GlobalScope.launch {
-        val requests = mutableListOf<Deferred<List<Article>>>()
+            val requests = mutableListOf<Deferred<List<Article>>>()
 
-        feeds.mapTo(requests) {
-            asyncFetchArticles(it, dispatcher)
-        }
+            feeds.mapTo(requests) {
+                asyncFetchArticles(it, dispatcher)
+            }
 
-        requests.forEach {
-            it.join()
-        }
+            requests.forEach {
+                it.join()
+            }
 
-        val articles = requests
-            .filter { !it.isCancelled }
-            .flatMap { it.getCompleted() }
+            val articles = requests
+                .filter { !it.isCancelled }
+                .flatMap { it.getCompleted() }
 
-        val failedCount = requests
-            .filter { it.isCancelled }
-            .size
-
-        val obtained = requests.size - failedCount
-
-        launch(Main) {
-            findViewById<ProgressBar>(R.id.progress).isVisible = false
-            articleAdapter.addAll(articles)
-        }
-
+            launch(Main) {
+                setContent {
+                    MaterialTheme {
+                        Articles(list = articles)
+                    }
+                }
+            }
     }
 
     private fun asyncFetchArticles(feed: Feed, dispatcher: CoroutineDispatcher) =
@@ -106,9 +94,57 @@ class MainActivity : ComponentActivity() {
         )
 
     }
-}
 
-@Composable
-fun Hello() {
-    Text("Hello")
+    @Composable
+    private fun Articles(list: List<Article>) {
+        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+            items(items = list) { item ->
+                Article(item = item)
+            }
+        }
+    }
+
+    @Composable
+    private fun Article(item: Article) {
+        Card(
+            backgroundColor = MaterialTheme.colors.primary,
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+        ) {
+            CardContent(item = item)
+        }
+    }
+
+    @Composable
+    fun CardContent(item: Article) {
+
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = item.feed,
+                    style = (MaterialTheme.typography.h3).copy(fontWeight = FontWeight.ExtraBold)
+                )
+                Text(
+                    text = item.title,
+                    style = (MaterialTheme.typography.h4).copy(fontWeight = FontWeight.ExtraBold)
+                )
+                Text(
+                    text = item.summary,
+                )
+            }
+        }
+    }
+
 }
