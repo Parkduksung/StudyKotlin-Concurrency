@@ -2,20 +2,23 @@ package com.example.chapter4
 
 import android.os.Bundle
 import android.widget.ProgressBar
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.chapter4.adapter.ArticleAdapter
 import com.example.chapter4.model.Article
 import com.example.chapter4.model.Feed
-import com.example.chapter4.suspend.Exam1
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Main
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import javax.xml.parsers.DocumentBuilderFactory
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private val factory = DocumentBuilderFactory.newInstance()
 
@@ -27,9 +30,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        Exam1.getProfile()
-//        initUi()
+        setContent {
+            MaterialTheme {
+                Hello()
+            }
+        }
     }
 
 
@@ -101,4 +106,9 @@ class MainActivity : AppCompatActivity() {
         )
 
     }
+}
+
+@Composable
+fun Hello() {
+    Text("Hello")
 }
