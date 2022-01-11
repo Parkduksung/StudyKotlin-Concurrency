@@ -7,7 +7,7 @@ object Exam1 {
 
     fun getProfile() = runBlocking {
         val clinet: ProfileServiceRepository = ProfileServiceClient()
-        val profile = clinet.asyncFetchById(12).await()
+        val profile = clinet.asyncFetchById(12)
         Log.d("결과", profile.toString())
     }
 
