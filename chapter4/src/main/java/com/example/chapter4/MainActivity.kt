@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.chapter4.adapter.ArticleAdapter
 import com.example.chapter4.model.Article
 import com.example.chapter4.model.Feed
+import com.example.chapter4.suspend.Exam1
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Main
 import org.w3c.dom.Element
@@ -27,7 +28,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        initUi()
+        Exam1.getProfile()
+//        initUi()
     }
 
 
