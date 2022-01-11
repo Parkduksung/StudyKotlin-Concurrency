@@ -1,11 +1,15 @@
 package com.example.chapter4
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
+import android.widget.ProgressBar
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.RecyclerView
+import com.example.chapter4.adapter.ArticleAdapter
 import com.example.chapter4.model.Article
 import com.example.chapter4.model.Feed
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Main
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import javax.xml.parsers.DocumentBuilderFactory
@@ -16,9 +20,22 @@ class MainActivity : AppCompatActivity() {
 
     private val dispatcher = newFixedThreadPoolContext(2, "IO")
 
+    private val articleAdapter = ArticleAdapter()
+
+    private val rvArticle by lazy { findViewById<RecyclerView>(R.id.rv_article) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        initUi()
+    }
+
+
+    private fun initUi() {
+        rvArticle.run {
+            adapter = articleAdapter
+        }
+        asyncLoadNews()
     }
 
     private fun asyncLoadNews() = GlobalScope.launch {
@@ -35,6 +52,17 @@ class MainActivity : AppCompatActivity() {
         val articles = requests
             .filter { !it.isCancelled }
             .flatMap { it.getCompleted() }
+
+        val failedCount = requests
+            .filter { it.isCancelled }
+            .size
+
+        val obtained = requests.size - failedCount
+
+        launch(Main) {
+            findViewById<ProgressBar>(R.id.progress).isVisible = false
+            articleAdapter.addAll(articles)
+        }
 
     }
 
