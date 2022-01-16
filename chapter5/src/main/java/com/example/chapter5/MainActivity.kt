@@ -1,36 +1,38 @@
 package com.example.chapter5
 
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.annotation.RequiresApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 
 class MainActivity : AppCompatActivity() {
-    @RequiresApi(Build.VERSION_CODES.N)
+
+    private val dispatcher = newSingleThreadContext("myThread")
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val sequence2 = Exam2.sequenceExam2()
+        val producer = Exam3.producerExam1(dispatcher)
 
-        Log.d("결과", sequence2.take(5).joinToString())
+        GlobalScope.launch {
 
 
-        val sequence = sequence {
-            for (i in 0..9) {
-                Log.d("결과", "Yielding $i")
-                yield(i)
-            }
+            // 0 출력.
+//            Log.d("결과", producer.receive().toString())
+
+            //0 - 9 까지 출력
+//            producer.consumeEach {
+//                Log.d("결과", it.toString())
+//            }
+
+            //한번더 출력하게되면 error 발생
+            //cause : Channel was closed
+//            Log.d("결과", producer.receive().toString())
         }
-
-        val fibonacci = Exam2.fibonacci()
-
-        val indexed = fibonacci.take(10).withIndex()
-
-        for ((index, value) in indexed) {
-            Log.d("결과", "index : $index , value : $value")
-        }
-
     }
 }
