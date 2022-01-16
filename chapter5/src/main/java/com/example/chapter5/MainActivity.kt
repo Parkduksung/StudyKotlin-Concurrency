@@ -17,22 +17,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val producer = Exam3.producerExam1(dispatcher)
+        val producerFibonacci = Exam3.producerFibonacci()
 
         GlobalScope.launch {
-
-
-            // 0 출력.
-//            Log.d("결과", producer.receive().toString())
-
-            //0 - 9 까지 출력
-//            producer.consumeEach {
-//                Log.d("결과", it.toString())
-//            }
-
-            //한번더 출력하게되면 error 발생
-            //cause : Channel was closed
-//            Log.d("결과", producer.receive().toString())
+            producerFibonacci.consumeEach {
+                if(it > 100L){
+                    producerFibonacci.cancel()
+                }else{
+                    Log.d("결과", it.toString())
+                }
+            }
         }
     }
 }

@@ -11,4 +11,16 @@ object Exam3 {
             send(i)
         }
     }
+
+    fun producerFibonacci() = GlobalScope.produce {
+        send(1L)
+        var current = 1L
+        var next = 1L
+        while (true) {
+            send(next)
+            val tmpNext = current + next
+            current = next
+            next = tmpNext
+        }
+    }
 }
