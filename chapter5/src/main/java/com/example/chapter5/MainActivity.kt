@@ -12,16 +12,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val iterator = Exam1.yieldExam2()
+        val sequence2 = Exam2.sequenceExam2()
 
-        for (i in 0..5) {
+        Log.d("결과", sequence2.take(5).joinToString())
 
-            if (iterator.hasNext()) {
-                Log.d("결과" , "$i is ${iterator.next()}")
-            } else {
-                Log.d("결과" , "No more elements")
+
+        val sequence = sequence {
+            for (i in 0..9) {
+                Log.d("결과", "Yielding $i")
+                yield(i)
             }
+        }
 
+        val fibonacci = Exam2.fibonacci()
+
+        val indexed = fibonacci.take(10).withIndex()
+
+        for ((index, value) in indexed) {
+            Log.d("결과", "index : $index , value : $value")
         }
 
     }
