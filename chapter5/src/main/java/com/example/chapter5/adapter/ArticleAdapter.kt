@@ -1,17 +1,16 @@
 package com.example.chapter5.adapter
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.chapter5.adapter.viewholder.ArticleLoader
+import com.example.chapter5.adapter.viewholder.ArticleLoaderListener
 import com.example.chapter5.adapter.viewholder.ArticleViewHolder
 import com.example.chapter5.model.Article
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class ArticleAdapter(private val loader: ArticleLoader) :
+class ArticleAdapter(private val loaderListener: ArticleLoaderListener) :
     RecyclerView.Adapter<ArticleViewHolder>() {
 
     private val articleItemList = mutableListOf<Article>()
@@ -25,7 +24,7 @@ class ArticleAdapter(private val loader: ArticleLoader) :
         if (!loading && position >= articleItemList.size - 2) {
             loading = true
             CoroutineScope(Dispatchers.IO).launch {
-                loader.loadMore()
+                loaderListener.loadMore()
                 loading = false
             }
         }

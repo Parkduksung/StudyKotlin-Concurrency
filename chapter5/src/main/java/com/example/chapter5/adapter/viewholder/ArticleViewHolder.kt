@@ -22,6 +22,6 @@ class ArticleViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
     }
 }
 
-interface ArticleLoader {
+interface ArticleLoaderListener {
     suspend fun loadMore()
 }
