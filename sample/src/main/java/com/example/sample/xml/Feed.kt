@@ -1,4 +1,4 @@
-package com.example.sample.util
+package com.example.sample.xml
 
 import com.example.sample.data.model.Article
 import com.example.sample.data.model.Feed
@@ -6,13 +6,15 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import javax.xml.parsers.DocumentBuilderFactory
 
-object FeedUtil {
+interface FeedListener {
+    suspend fun getArticles(feed: Feed): List<Article>
+}
 
-    private val factory = DocumentBuilderFactory.newInstance()
-
-    fun getArticles(feed: Feed) : List<Article> {
-        val builder = factory.newDocumentBuilder()
-        val xml = builder.parse(feed.url)
+object Feed : FeedListener {
+    @Throws(java.lang.Exception::class)
+    override suspend fun getArticles(feed: Feed): List<Article> {
+        val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val xml = documentBuilder.parse(feed.url)
         val news = xml.getElementsByTagName("channel").item(0)
         val articleList = (0 until news.childNodes.length).map { news.childNodes.item(it) }
             .filter { Node.ELEMENT_NODE == it.nodeType }.map { it as Element }
@@ -24,5 +26,6 @@ object FeedUtil {
             }
         return articleList
     }
-
 }
+
+
