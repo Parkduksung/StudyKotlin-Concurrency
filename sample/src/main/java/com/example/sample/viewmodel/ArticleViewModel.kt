@@ -10,7 +10,9 @@ import com.example.sample.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,17 +25,21 @@ class ArticleViewModel @Inject constructor(private val articleRepository: Articl
         CoroutineScope(IO).launch {
             when (val result = articleRepository.getArticles(feed)) {
                 is Result.Success -> {
-                    _articleViewStateLiveData.value = ArticleViewState.GetArticles(result.data)
+                    withContext(Main) {
+                        _articleViewStateLiveData.value = ArticleViewState.GetArticles(result.data)
+                    }
                 }
                 is Result.Error -> {
-                    _articleViewStateLiveData.value = ArticleViewState.Error
+                    withContext(Main) {
+                        _articleViewStateLiveData.value = ArticleViewState.Error
+                    }
                 }
             }
         }
     }
 
 
-    sealed class ArticleViewState{
+    sealed class ArticleViewState {
         data class GetArticles(val list: List<Article>) : ArticleViewState()
         object Error : ArticleViewState()
     }
