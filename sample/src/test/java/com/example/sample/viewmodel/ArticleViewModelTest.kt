@@ -52,7 +52,7 @@ class ArticleViewModelTest {
         articleViewModel.getArticles(mockFeed)
 
         delay(500L)
-//        //then
+        //then
         Mockito.verify(viewStateObserver)
             .onChanged(ArticleViewModel.ArticleViewState.GetArticles(successResult.data))
     }
