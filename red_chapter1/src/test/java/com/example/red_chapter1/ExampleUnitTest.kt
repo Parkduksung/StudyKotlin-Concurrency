@@ -1,5 +1,6 @@
 package com.example.red_chapter1
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -14,4 +15,14 @@ class ExampleUnitTest {
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
     }
+
+
+    //돌아가는 스레드가 여기선 test worker 이다.
+    @Test
+    fun `간단한 코루틴`() = runBlocking {
+        println(Thread.currentThread().name)
+        println("Hello!")
+    }
+
+
 }
