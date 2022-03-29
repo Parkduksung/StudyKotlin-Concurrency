@@ -4,6 +4,7 @@ package com.example.red_chapter1
 import android.util.Log
 import kotlinx.coroutines.*
 import kotlin.random.Random
+import kotlin.system.*
 import kotlin.system.measureTimeMillis
 
 object Sample {
@@ -530,8 +531,137 @@ object Sample {
         }
     }
 
-}
+    //코루틴의 여러 디스패처 Default, IO, Unconfined, newSingleThreadContext 존재한다.
+    // Default는 코어 수에 비례하는 스레드 풀에서 수행
+    // IO는 코어 수 보다 훨씬 많은 스레드를 가지는 스레드 풀. IO 작업은 CPU를 덜 소모하기 때문
+    // Unconfined는 어디에도 속하지 않는다. 아래 예제에는 부모의 스레드에서 수행될 것이다.
+    // newSingleThreadContext는 항상 새로운 스레드를 만듦.
 
-fun printLog(message: String) {
-    Log.d(Sample.TAG, message)
+    fun `코루틴_디스패처`() = runBlocking {
+        launch {
+            printLog("부모의 콘텍스트 / ${Thread.currentThread().name}")
+        }
+
+        launch(Dispatchers.Default) {
+            printLog("Default / ${Thread.currentThread().name}")
+        }
+
+        launch(Dispatchers.IO) {
+            printLog("IO / ${Thread.currentThread().name}")
+        }
+
+        launch(Dispatchers.Unconfined) {
+            printLog("Unconfined / ${Thread.currentThread().name}")
+        }
+
+        launch(newSingleThreadContext("Fast Campus")) {
+            printLog("newSingleThreadContext / ${Thread.currentThread().name}")
+        }
+    }
+
+
+    // runBlocking 에도 제네릭 타입을 사용할 수도 있으며 이또한 지금까지 코틀린의 타입추론에 의해서 이상없이 수행된 것을 알 수 있다.
+    // async 에서도 이상없이 디스패처들을 사용할 수 있다.
+    fun `async에서_코루틴_디스패처_사용`() = runBlocking<Unit> {
+        async {
+            printLog("부모의 콘텍스트 / ${Thread.currentThread().name}")
+        }
+
+        async(Dispatchers.Default) {
+            printLog("Default / ${Thread.currentThread().name}")
+        }
+
+        async(Dispatchers.IO) {
+            printLog("IO / ${Thread.currentThread().name}")
+        }
+
+        async(Dispatchers.Unconfined) {
+            printLog("Unconfined / ${Thread.currentThread().name}")
+        }
+
+        async(newSingleThreadContext("Fast Campus")) {
+            printLog("newSingleThreadContext / ${Thread.currentThread().name}")
+        }
+    }
+
+
+    // Confined는 처음에는 부모의 스레드에서 수행된다. 하지만 한번 중단점(suspension point)에 오면 바뀌게 된다.
+    // 그래서 중단점 이후 어느 디스패처에서 수행될지 예측하기 어렵다. 정확한 디스패처를 사용하느게 나아보인다.
+    fun `Confined_디스패처_테스트`() = runBlocking {
+        async(Dispatchers.Unconfined) {
+            printLog("Unconfined / ${Thread.currentThread().name}")
+            delay(500)
+            printLog("Unconfined / ${Thread.currentThread().name}")
+        }
+    }
+
+    //코루틴 스코프, 코루틴 컨텍스트는 구조화되어 있고 부모에게 계층적으로 되어 있다.
+    //코루틴 컨텍스트의 Job 역시 부모에게 의존적이다.
+    fun `부모가_있는_Job과_없는_Job`() = runBlocking<Unit> {
+        val job = launch {
+            launch(Job()) {
+                printLog(coroutineContext[Job].toString())
+                printLog("launch1: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("3!")
+            }
+
+            launch {
+                printLog(coroutineContext[Job].toString())
+                printLog("launch2: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("1!")
+            }
+        }
+
+        delay(500L)
+        job.cancelAndJoin()
+//        delay(1000L)
+    }
+
+    // 부모를 join해서 기다려 보면 부모는 두 자식이 모두 끝날 때까지 기다린다는 것을 알 수 있다.
+    fun `부모의_마음`() = runBlocking<Unit> {
+        val elapsed = measureTimeMillis {
+            val job = launch { // 부모
+                launch { // 자식 1
+                    printLog("launch1: ${Thread.currentThread().name}")
+                    delay(5000L)
+                }
+
+                launch { // 자식 2
+                    printLog("launch2: ${Thread.currentThread().name}")
+                    delay(10L)
+                }
+            }
+            job.join()
+        }
+        printLog(elapsed.toString())
+    }
+
+
+    //여러 코루틴 엘리먼트를 한번에 사용할 수 있다.
+    //+ 연산으로 엘리먼트를 합치면 된다.
+    //합쳐진 엘리먼트들은 coroutineContext[XXX]로 조회할 수 있다.
+    @ExperimentalStdlibApi
+    fun `코루틴_엘리먼트_결합`() = runBlocking<Unit> {
+        launch {
+            launch(Dispatchers.IO + CoroutineName("launch1")) {
+                printLog("launch1: ${Thread.currentThread().name}")
+                printLog(coroutineContext[CoroutineDispatcher].toString())
+                printLog(coroutineContext[CoroutineName].toString())
+                delay(5000L)
+            }
+
+            launch(Dispatchers.Default + CoroutineName("launch1")) {
+                printLog("launch2: ${Thread.currentThread().name}")
+                printLog(coroutineContext[CoroutineDispatcher].toString())
+                printLog(coroutineContext[CoroutineName].toString())
+                delay(10L)
+            }
+        }
+    }
+
+    fun printLog(message: String) {
+        Log.d(Sample.TAG, message)
+    }
 }
