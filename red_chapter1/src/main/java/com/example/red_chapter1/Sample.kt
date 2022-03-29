@@ -1,13 +1,12 @@
 package com.example.red_chapter1
 
+
 import android.util.Log
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
 object Sample {
 
-    private const val TAG = "Sample"
+    const val TAG = "Sample"
 
     fun `간단한_코루틴`() = runBlocking {
         Log.d(TAG, Thread.currentThread().name)
@@ -140,4 +139,311 @@ object Sample {
     // 만약에 suspend 함수를 다른 함수에서 호출하려면 그 함수가 suspend 함수이거나 코루틴 빌더를 통해 코루틴을 만들어야 한다.
 
 
+    // launch 와 같은 코루틴 빌더는 코루틴이기에 코루틴은 코루틴 스코프안에서만 시작되므로 코루틴 빌더를 호출하기 위해서는
+    // 코루틴 스코프 내에서 호출되어야 한다.
+    fun `suspend_함수에서_코루틴_빌더_호출`() = runBlocking {
+        doOneTwoThree()
+        printLog("launch4: ${Thread.currentThread().name}")
+        printLog("5")
+    }
+
+    //역시나 코루틴 스코프는 수신객체를 반환하는데 여기에서 coroutineContext 라는 프로퍼티를 가지고 있으며, 이 프로퍼티는 코루틴의 내용이 들어져 있다.
+    //일시중단함수 즉 fun 앞에 suspend 가 붙게된 함수를 호출하려면 코루틴 스코프 혹은 또다른 suspend 함수에서 호출해야 한다.
+    //옆에 화살표로 되어 있는 표시가 통상적으로 중단점이라고 생각하면 된다. (suspension point)
+    suspend fun doOneTwoThree() = coroutineScope {
+        launch {
+            printLog("launch1: ${Thread.currentThread().name}")
+            delay(1000L)  //suspension point
+            printLog("3")
+        }
+        launch {
+            printLog("launch2: ${Thread.currentThread().name}")
+            printLog("1")
+        }
+        launch {
+            printLog("launch3: ${Thread.currentThread().name}")
+            delay(500L) //suspension point
+            printLog("2")
+        }
+        printLog("4")
+    }
+
+    //여기서 runBlocking은 현재 쓰레드를 멈추게 만들고, 기다리지만
+    //coroutineScope는 현재 스레드를 멈추게 하지 않는다.
+    // 호출한 쪽이 suspend되고 시간이 되면 다시 활동하게 된다.
+
+
+    // 코루틴빌더 launch 는 job 이라는 객체를 반환한다.
+    fun `Job을_이용한_제어`() = runBlocking {
+        doOneTwoThree1()
+        printLog("launch4: ${Thread.currentThread().name}")
+        printLog("5")
+    }
+
+    suspend fun doOneTwoThree1() = coroutineScope {
+
+        val job = launch {
+            printLog("launch1: ${Thread.currentThread().name}")
+            delay(1000L)  //suspension point
+            printLog("3")
+        }
+
+        job.join() // 종료할때까지 기다린다.
+
+        launch {
+            printLog("launch2: ${Thread.currentThread().name}")
+            printLog("1")
+        }
+        launch {
+            printLog("launch3: ${Thread.currentThread().name}")
+            delay(500L) //suspension point
+            printLog("2")
+        }
+        printLog("4")
+    }
+
+
+    //코루틴은 협력적으로 동작하기 때문에 여러 코루틴을 만드는 것이 큰 비용이 들지 않는다.
+    // 10만개의 간단한 일을 하는 코루틴도 큰 부담은 아님.
+    fun `가벼운_코루틴`() = runBlocking {
+        doOneTwoThree2()
+        printLog("launch4: ${Thread.currentThread().name}")
+        printLog("5")
+    }
+
+    suspend fun doOneTwoThree2() = coroutineScope {
+
+        val job = launch {
+            printLog("launch1: ${Thread.currentThread().name}")
+            delay(1000L)  //suspension point
+            printLog("3")
+        }
+
+        job.join() // 종료할때까지 기다린다.
+
+        launch {
+            printLog("launch2: ${Thread.currentThread().name}")
+            printLog("1")
+        }
+
+        repeat(1000) {
+            launch {
+                printLog("launch3: ${Thread.currentThread().name}")
+                delay(500L) //suspension point
+                printLog("2")
+            }
+        }
+        printLog("4")
+    }
+
+
+    fun `Job에_대해_취소`() = runBlocking {
+        doOneTwoThree3()
+        printLog("launch4: ${Thread.currentThread().name}")
+        printLog("5")
+    }
+
+    suspend fun doOneTwoThree3() = coroutineScope {
+
+        val job1 = launch {
+            printLog("launch1: ${Thread.currentThread().name}")
+            delay(1000L)  //suspension point
+            printLog("3")
+        }
+
+
+        val job2 = launch {
+            printLog("launch2: ${Thread.currentThread().name}")
+            printLog("1")
+        }
+
+
+        val job3 = launch {
+            printLog("launch3: ${Thread.currentThread().name}")
+            delay(500L) //suspension point
+            printLog("2")
+        }
+        delay(600L)
+
+        job1.cancel()
+        job2.cancel()
+        job3.cancel()
+
+        printLog("4")
+    }
+
+
+    // job 내에 어떤 루프가 있다면 이건 취소가 불가능하다.
+    // 취소가 가능하게 하려면 job1 에서 수신객체로 전달받는 코루틴스코프의 정보를 가지고 있는 coroutineContext 가
+    // 활성화 상태인지 여부를 추가해 주면 된다.
+    fun `취소_불가능한_Job`() = runBlocking {
+        doCount()
+    }
+
+    //1,2 하고 바로 Done 이 불리기 위해선 isActive 를 && 로 넣어주면 되고.
+    //1~10까지 다 출력하고 나서 done 을 부르고 싶으면 cancelAndJoin 을 해주면된다.
+    suspend fun doCount() = coroutineScope {
+        val job1 = launch(Dispatchers.Default) {
+            var i = 1
+            var nextTime = System.currentTimeMillis() + 100L
+
+            while (i <= 10) {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime >= nextTime) {
+                    printLog(i.toString())
+                    nextTime = currentTime + 100L
+                    i++
+                }
+            }
+        }
+
+        delay(200L)
+        job1.cancelAndJoin()
+        printLog("doCount Done!")
+    }
+
+    //job 의 끝나는 여부를 로그로 취합할 수도 있겠다.
+    fun `finally를_사용한_job_종료`() = runBlocking {
+        doOneTwoThree4()
+        printLog("launch4: ${Thread.currentThread().name}")
+        printLog("5")
+    }
+
+    suspend fun doOneTwoThree4() = coroutineScope {
+        val job1 = launch {
+            try {
+                printLog("launch1: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("3!")
+            } finally {
+                printLog("job1 is finishing!")
+            }
+        }
+
+        val job2 = launch {
+            try {
+                delay(1000L)
+                printLog("launch2: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("1!")
+            } finally {
+                printLog("job2 is finishing!")
+            }
+        }
+
+        val job3 = launch {
+            try {
+                printLog("launch3: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("2!")
+            } finally {
+                printLog("job3 is finishing!")
+            }
+        }
+        delay(800L)
+        job1.cancel()
+        job2.cancel()
+        job3.cancel()
+        printLog("4!")
+    }
+
+
+    //취소 불가능한 블록을 finally 로 넣어도 되긴한다.
+    fun `취소_불가능한_블록만들기`() = runBlocking {
+        doOneTwoThree5()
+    }
+
+    suspend fun doOneTwoThree5() = coroutineScope {
+        val job1 = launch {
+            withContext(NonCancellable) {
+                printLog("launch1: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("3!")
+            }
+            delay(1000L)
+            printLog("job1: end")
+        }
+
+        val job2 = launch {
+            withContext(NonCancellable) {
+                printLog("launch2: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("1!")
+            }
+            delay(1000L)
+            printLog("job2: end")
+        }
+
+        val job3 = launch {
+            withContext(NonCancellable) {
+                printLog("launch3: ${Thread.currentThread().name}")
+                delay(1000L)
+                printLog("2!")
+            }
+            delay(1000L)
+            printLog("job3: end")
+        }
+
+        delay(800L)
+        job1.cancel()
+        job2.cancel()
+        job3.cancel()
+        printLog("4!")
+    }
+
+
+    //취소가 되면은 TimeoutCancellationException 발생하여 종료.
+    fun `타임_아웃`() = runBlocking {
+        withTimeout(500L) {
+            doCount1()
+        }
+    }
+
+    suspend fun doCount1() = coroutineScope {
+        val job1 = launch(Dispatchers.Default) {
+            var i = 1
+            var nextTime = System.currentTimeMillis() + 100L
+
+            while (i <= 10 && isActive) {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime >= nextTime) {
+                    printLog(i.toString())
+                    nextTime = currentTime + 100L
+                    i++
+                }
+            }
+        }
+    }
+
+
+    // 여기서 500ms 안에 성공했는지 실패했는지 exception 을 발생시키는게 아닌 성공 여부를 확인가능하게끔 바꿔볼 수 있다.
+    // 실패했을시에 null 을 반환하는데 아래같이 boolean 형식으로 반환하게 하고 엘비스로 null 일경우 false 로 결과값을 가지게 할 수도 있다.
+    fun `withTimeoutOrNull`() = runBlocking {
+        val result = withTimeoutOrNull(500) {
+            doCount2()
+            true
+        } ?: false
+
+        printLog(result.toString())
+    }
+
+    suspend fun doCount2() = coroutineScope {
+        val job1 = launch(Dispatchers.Default) {
+            var i = 1
+            var nextTime = System.currentTimeMillis() + 100L
+
+            while (i <= 10 && isActive) {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime >= nextTime) {
+                    printLog(i.toString())
+                    nextTime = currentTime + 100L
+                    i++
+                }
+            }
+        }
+    }
+}
+
+fun printLog(message: String) {
+    Log.d(Sample.TAG, message)
 }
