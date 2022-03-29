@@ -3,6 +3,8 @@ package com.example.red_chapter1
 
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlin.random.Random
+import kotlin.system.measureTimeMillis
 
 object Sample {
 
@@ -442,6 +444,92 @@ object Sample {
             }
         }
     }
+
+    //그냥 할때에는 2초 정도가 걸리지만
+    // 순차적 수행을 동시에 수행이 가능하게 async 로 묶어서 await 으로 실행하게 되면은 동시에 실행되어 1초 정도가 걸리게 할 수 있다.
+    // 즉, aync 키워드를 이용하면 동시에 다른 블록을 수행할 수 있다.
+    // launch 와 같은 코루틴 빌더이지만 launch 와 다르게 반환하는 값이 존재하여 이를 Deferred 객체이다.
+    // 반환타입은 async 의 제레닉 타입이지만 코틀린 특성상 타입추론이 가능하여 생략될 수 있지만 복잡한 상황일경우 컴파일러가 추론할 수 없을 경우도 존재하기 때문에
+    // 넣어주어야 할때도 존재한다.
+    fun `suspend_함수들의_순차적인_수행`() = runBlocking {
+        val elapsedTime = measureTimeMillis {
+            val value1 = async<Int> { getRandom1() }
+            val value2 = async { getRandom2() }
+            printLog("${value1.await()} + ${value2.await()} = ${value1.await() + value2.await()}")
+        }
+        printLog(elapsedTime.toString())
+    }
+
+    suspend fun getRandom1(): Int {
+        delay(1000L)
+        return Random.nextInt(0, 500)
+    }
+
+    suspend fun getRandom2(): Int {
+        delay(1000L)
+        return Random.nextInt(0, 500)
+    }
+
+
+    //즉, 결과를 받을 필요가 없다 = launch / 결과를 받아야 한다 = async
+
+
+    //여기서 start 메서드를 호출해 줘야 한다.
+    // start 는 boolean 타입을 호출하게 된다.
+    // start 를 호출했을때에는 isActive 값이 true 인데 start 를 호출하지 않을 경우에는 isActive 가 false 이다.
+    // 게으르게 사용할경우 start 호출 시점이 중요하며 호출하지 않고 그냥 await 을 호출하여 사용할 경우에는 async 로 감싸도 동시에 작동되지 않으므로 2초가 걸린다.
+    fun `aync_게으르게_사용하기`() = runBlocking {
+        val elapsedTime = measureTimeMillis {
+            val value1 = async(start = CoroutineStart.LAZY) { getRandom1() }
+            val value2 = async(start = CoroutineStart.LAZY) { getRandom2() }
+//            printLog("value1 : ${value1.start()}")
+//            printLog("value2 : ${value2.start()}")
+            printLog("value1 isActive : ${value1.isActive}")
+            printLog("value2 isActive : ${value2.isActive}")
+
+            printLog("${value1.await()} + ${value2.await()} = ${value1.await() + value2.await()}")
+        }
+        printLog(elapsedTime.toString())
+    }
+
+
+    // 코루틴이 구조적이라는 걸 알 수 있는 예제이다.
+    // 내부의 코루틴에서 예외가 발생하면 그 예외는 최상위의 코루틴에게도 전달된다.
+
+    fun `async를_사용한_구조적인_동시성`() = runBlocking {
+        try {
+            doSomething()
+        } catch (e: IllegalStateException) {
+            //getRandom2Exception 의 IllegalStateException 이 최상단까지 전달되면서 모든 코루틴을 cancel 시키며,
+            //현재와 같이 외부에서도 exception 을 잡아줘야 한다.
+            printLog("doSomething failed: $e")
+        }
+    }
+
+    suspend fun getRandom1Exception(): Int {
+        try {
+            delay(1000L)
+            return Random.nextInt(0, 500)
+        } finally {
+            printLog("getRandom1 is cancelled.")
+        }
+    }
+
+    suspend fun getRandom2Exception(): Int {
+        delay(500L)
+        throw IllegalStateException()
+    }
+
+    suspend fun doSomething() = coroutineScope {
+        val value1 = async { getRandom1Exception() }
+        val value2 = async { getRandom2Exception() }
+        try {
+            printLog("${value1.await()} + ${value2.await()} = ${value1.await() + value2.await()}")
+        } finally {
+            printLog("doSomething is cancelled.")
+        }
+    }
+
 }
 
 fun printLog(message: String) {
