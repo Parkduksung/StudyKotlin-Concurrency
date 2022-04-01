@@ -3,6 +3,9 @@ package com.example.red_chapter1
 
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.random.Random
 import kotlin.system.*
 import kotlin.system.measureTimeMillis
@@ -759,6 +762,104 @@ object Sample {
         launch(ceh) { printRandom2() }
     }
 
+    var counter = 0
+
+    fun `공유_객체_문제`() = runBlocking {
+
+        withContext(counterContext) {  // withContext 는 수행이 완료될 때까지 기다리는 코루틴 빌더이다.
+            massiveRun {
+                counter++
+            }
+        }
+
+        printLog(counter.toString()) // 위의 withContext 가 다 실행될때까지 잠이 들었다 깨어난다.
+    }
+
+    val counterContext = newSingleThreadContext("CounterContext")
+
+    suspend fun massiveRun(action: suspend () -> Unit) {
+
+        val n = 100 // 시작할 코루틴 갯수
+        val k = 1000 // 코루틴 내에서 반복할 횟수
+
+        val elapsed = measureTimeMillis {
+            coroutineScope {
+                repeat(n) {
+                    launch {
+                        repeat(k) {
+                            action()
+                        }
+                    }
+                }
+            }
+        }
+
+        printLog("$elapsed ms동안 ${n * k}개의 액션을 수행했습니다.")
+        // 액션을 100_000 번 실행했는데 counter 는 100_000 이 아닐 경우가 존재한다.
+        // 왜냐하면 Dispatchers.Default에 의해 코루틴이 어떻게 할당되냐에 따라 값이 달라지므로..
+        // Default 는 새롭게 만들어서 사용되니까 100_000번을 만드는데 할당되는게 다를수 있다는 의미.
+        // 새롭게 job 을 만들어서 join 을 해주던지 counter 를 atomicInteger 로 해주던지 혹은 아예 스레드를 한정해서 돌리던지 하면 된다.
+    }
+
+    fun `뮤텍스`() = runBlocking {
+        withContext(Dispatchers.Default) {
+            massiveRun1 {
+                mutex.withLock {
+                    counter++
+                }
+            }
+
+        }
+        printLog(counter.toString())
+    }
+
+    //이렇게 하면 오래 걸리긴 하네..
+    val mutex = Mutex()
+
+    suspend fun massiveRun1(action: suspend () -> Unit) {
+        val n = 100 // 시작할 코루틴의 갯수
+        val k = 1000 // 코루틴 내에서 반복할 횟수
+        val elapsed = measureTimeMillis {
+            coroutineScope { // scope for coroutines
+                repeat(n) {
+                    launch {
+                        repeat(k) { action() }
+                    }
+                }
+            }
+        }
+        printLog("$elapsed ms동안 ${n * k}개의 액션을 수행했습니다.")
+    }
+
+
+    fun `액터`() = runBlocking<Unit> {
+        val counter = counterActor()
+        withContext(Dispatchers.Default) {
+            massiveRun {
+                counter.send(IncCounter)
+            }
+        }
+        val response = CompletableDeferred<Int>()
+        counter.send(GetCounter(response))
+        printLog("Counter = ${response.await()}")
+        counter.close()
+    }
+
+    sealed class CounterMsg
+    object IncCounter : CounterMsg()
+    class GetCounter(val response: CompletableDeferred<Int>) : CounterMsg()
+
+
+    fun CoroutineScope.counterActor() = actor<CounterMsg> {
+        var counter = 0 // 액터 안에 상태를 캡슐화해두고 다른 코루틴이 접근하지 못하게 함.
+
+        for (msg in channel) { // 외부에서 보내는 것은 채널을 통해서만 받을 수 있다.(recieve)
+            when (msg) {
+                is IncCounter -> counter++ // 증가시키는 신호.
+                is GetCounter -> msg.response.complete(counter) // 현재 상태를 반환.
+            }
+        }
+    }
 
     fun printLog(message: String) {
         Log.d(Sample.TAG, message)

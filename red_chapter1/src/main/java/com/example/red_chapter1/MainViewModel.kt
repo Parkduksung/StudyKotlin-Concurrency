@@ -4,9 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.red_chapter1.Sample.printLog
-import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
@@ -19,9 +21,9 @@ class MainViewModel : ViewModel() {
     private lateinit var job2: Job
 
 
-    init {
-        showExam1Result()
-    }
+//    init {
+//        showExam1Result()
+//    }
 
     private fun showExam1Result() {
         CoroutineScope(Main).launch {
@@ -49,6 +51,7 @@ class MainViewModel : ViewModel() {
             launch {
                 job2.join()
                 delay(2000L)
+                printLog("launch4: ${Thread.currentThread().name}")
                 printLog("22")
             }
             delay(1000L)
