@@ -2,7 +2,9 @@ package com.example.red_chapter1
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.w3c.dom.Text
@@ -28,6 +30,9 @@ class MainActivity : AppCompatActivity() {
             when (viewState) {
                 is MainViewModel.MainViewState.GetData -> {
                     findViewById<TextView>(R.id.tv_sample).text = viewState.data
+                }
+                is MainViewModel.MainViewState.Loading -> {
+                    findViewById<ProgressBar>(R.id.progressbar).isVisible = viewState.isLoading
                 }
             }
         }
