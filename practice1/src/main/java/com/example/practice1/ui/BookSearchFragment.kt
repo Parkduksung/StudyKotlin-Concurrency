@@ -1,7 +1,6 @@
 package com.example.practice1.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.practice1.databinding.FragmentBookSearchBinding
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -21,7 +19,9 @@ class BookSearchFragment : Fragment() {
     private lateinit var bookViewModel: BookViewModel
 
     private val adapter: BookSearchAdapter = BookSearchAdapter {
-
+        requireActivity().supportFragmentManager.beginTransaction()
+            .add(binding.containerList.id, BookDetailFragment.newInstance(it))
+            .addToBackStack("BookDetailFragment").commitAllowingStateLoss()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +40,6 @@ class BookSearchFragment : Fragment() {
             }
         }
         binding.recyclerView.adapter = adapter
-        requireActivity().title = "Book Search"
         return binding.root
     }
 
@@ -48,7 +47,5 @@ class BookSearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         bookViewModel.handleQuery("android")
-
-
     }
 }
