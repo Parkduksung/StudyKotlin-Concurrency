@@ -1,14 +1,13 @@
 package com.example.practice1.ui
 
-import android.util.Log
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.example.practice1.api.BookItem
 
 class BookSearchAdapter(
-    private val itemClick: (BookItem) -> Unit
-) : PagingDataAdapter<BookItem, BookSearchViewHolder>(comparator) {
+    private val itemClick: (item: BookItem) -> Unit
+): PagingDataAdapter<BookItem, BookSearchViewHolder>(comparator) {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -18,9 +17,18 @@ class BookSearchAdapter(
     }
 
     override fun onBindViewHolder(holder: BookSearchViewHolder, position: Int) {
-        Log.d("결과", "$position")
         val item = getItem(position)
         holder.bind(item)
+    }
+
+    fun toggle(item: BookItem) {
+        if (snapshot().contains(item)) {
+            val index = snapshot().indexOfFirst { it == item }
+            snapshot()[index]?.let {
+                it.bookmark = !it.bookmark
+                notifyItemChanged(index)
+            }
+        }
     }
 
     companion object {

@@ -16,7 +16,8 @@ data class BookItem(
     @SerializedName("thumbnail") val thumbnail: String,
     @SerializedName("title") val title: String,
     @SerializedName("publisher") val publisher: String,
-    @SerializedName("datetime") val datetime: String
+    @SerializedName("datetime") val datetime: String,
+    var bookmark: Boolean = false
 ) : Parcelable
 
 data class Meta(

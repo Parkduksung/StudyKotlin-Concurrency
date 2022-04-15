@@ -32,20 +32,33 @@ class BookSearchFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentBookSearchBinding.inflate(inflater, container, false)
+
         viewLifecycleOwner.lifecycleScope.launch {
             bookViewModel.pagingDataFlow.collectLatest {
                 adapter.submitData(it)
             }
         }
+
+        requireActivity().lifecycleScope.launchWhenCreated {
+            bookViewModel.toggleItem.collectLatest {
+                adapter.toggle(it)
+            }
+        }
+
         binding.recyclerView.adapter = adapter
+        binding.outlinedTextField.setEndIconOnClickListener {
+            binding.outlinedTextField.editText?.text?.toString()?.let {
+                bookViewModel.handleQuery(it)
+            }
+        }
+
+        binding.outlinedTextField.editText?.setOnEditorActionListener { textView, i, keyEvent ->
+            bookViewModel.handleQuery(textView.text.toString())
+            true
+        }
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        bookViewModel.handleQuery("android")
-    }
 }
