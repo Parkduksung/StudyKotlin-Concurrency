@@ -1,11 +1,9 @@
 package com.example.practice1.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -13,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.example.practice1.R
 import com.example.practice1.api.BookItem
 import com.example.practice1.databinding.FragmentBookDetailBinding
-import com.google.android.material.checkbox.MaterialCheckBox
 
 private const val ARG_PARAM_BOOK_ITEM = "arg_param_book_item"
 
@@ -36,7 +33,7 @@ class BookDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
+
         binding =
             DataBindingUtil.inflate(layoutInflater, R.layout.fragment_book_detail, container, false)
 
@@ -46,19 +43,17 @@ class BookDetailFragment : Fragment() {
                 .load(item.thumbnail)
                 .centerCrop()
                 .into(binding.image)
+
+            binding.like.setOnClickListener {
+                bookViewModel.toggle(item)
+            }
         }
 
         binding.back.setOnClickListener {
             requireActivity().onBackPressed()
         }
 
-        binding.like.setOnCheckedChangeListener { _, b ->
-            bookItem?.let {
-                bookViewModel.toggle(it)
-            }
-        }
-
-        return view
+        return binding.root
     }
 
     companion object {

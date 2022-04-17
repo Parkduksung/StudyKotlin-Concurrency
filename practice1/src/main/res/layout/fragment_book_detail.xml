@@ -35,8 +35,9 @@
             android:id="@+id/like"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@android:drawable/btn_star"
+            android:background="@drawable/selector_checkbox_bookmark"
             android:button="@null"
+            android:checked="@{item.bookmark}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="W,1:1"
             app:layout_constraintEnd_toEndOf="parent"
@@ -94,7 +95,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:gravity="center_vertical"
-            android:text="@{item.sale_price}"
+            android:text="@{String.valueOf(item.sale_price)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/date"
             app:layout_constraintHeight_percent=".05"
@@ -119,20 +120,41 @@
             app:layout_constraintVertical_bias=".05"
             app:layout_constraintWidth_percent=".6" />
 
-        <TextView
-            android:id="@+id/content"
+        <androidx.core.widget.NestedScrollView
+            android:gravity="center_vertical"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:gravity="center_vertical"
-            android:text="@{item.contents}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@id/date"
             app:layout_constraintHorizontal_bias="0.153"
             app:layout_constraintStart_toStartOf="@id/title"
             app:layout_constraintTop_toBottomOf="@id/publisher"
-            app:layout_constraintVertical_bias="0.05" />
+            app:layout_constraintVertical_bias="0.05">
+
+            <TextView
+                android:gravity="center_vertical"
+                android:text="@{item.contents}"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </androidx.core.widget.NestedScrollView>
+
+<!--        <TextView-->
+<!--            android:id="@+id/content"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:layout_marginTop="10dp"-->
+<!--            android:layout_marginBottom="10dp"-->
+<!--            android:gravity="center_vertical"-->
+<!--            android:text="@{item.contents}"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="@id/date"-->
+<!--            app:layout_constraintHorizontal_bias="0.153"-->
+<!--            app:layout_constraintStart_toStartOf="@id/title"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/publisher"-->
+<!--            app:layout_constraintVertical_bias="0.05" />-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

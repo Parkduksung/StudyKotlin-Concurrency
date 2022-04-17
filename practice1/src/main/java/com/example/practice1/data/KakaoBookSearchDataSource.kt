@@ -28,6 +28,7 @@ class KakaoBookSearchDataSource(
 
             val items = response.bookItems
 
+
             val nextKey = if (items.isEmpty()) {
                 null
             } else {

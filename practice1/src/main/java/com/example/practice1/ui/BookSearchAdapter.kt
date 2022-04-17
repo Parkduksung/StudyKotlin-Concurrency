@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import com.example.practice1.api.BookItem
 
 class BookSearchAdapter(
-    private val itemClick: (item: BookItem) -> Unit
+    private val itemClick: (clickType: ItemClickType) -> Unit
 ): PagingDataAdapter<BookItem, BookSearchViewHolder>(comparator) {
 
     override fun onCreateViewHolder(

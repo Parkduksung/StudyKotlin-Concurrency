@@ -1,6 +1,5 @@
 package com.example.practice1.ui
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -10,7 +9,7 @@ import com.example.practice1.api.BookItem
 import com.example.practice1.databinding.BookSearchItemBinding
 
 class BookSearchViewHolder(
-    private val itemClick: (BookItem) -> Unit,
+    private val itemClick: (ItemClickType) -> Unit,
     private val binding: BookSearchItemBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -22,21 +21,18 @@ class BookSearchViewHolder(
                 .centerCrop()
                 .into(binding.image)
             itemView.setOnClickListener {
-                itemClick.invoke(item)
+                itemClick.invoke(ItemClickType.GetItem(item))
             }
 
-            if (item.bookmark) {
-                binding.like.setBackgroundColor(Color.BLACK)
-            } else {
-                binding.like.setBackgroundColor(Color.YELLOW)
+            binding.like.setOnCheckedChangeListener { _, _ ->
+                itemClick.invoke(ItemClickType.ToggleBookmark(item))
             }
-
         }
     }
 
     companion object {
         fun create(
-            itemClick: (BookItem) -> Unit,
+            itemClick: (ItemClickType) -> Unit,
             parent: ViewGroup
         ): BookSearchViewHolder {
             val view = LayoutInflater.from(parent.context)
@@ -45,4 +41,9 @@ class BookSearchViewHolder(
             return BookSearchViewHolder(itemClick, binding)
         }
     }
+}
+
+sealed class ItemClickType {
+    data class ToggleBookmark(val item :BookItem) : ItemClickType()
+    data class GetItem(val item :BookItem) : ItemClickType()
 }

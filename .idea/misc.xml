@@ -13,9 +13,12 @@
         <entry key="chapter8/src/main/res/layout/activity_main.xml" value="0.2776268115942029" />
         <entry key="chapter9/src/main/res/layout/activity_main.xml" value="0.2776268115942029" />
         <entry key="practice1/src/main/res/drawable/ic_bacl.xml" value="0.151" />
+        <entry key="practice1/src/main/res/drawable/ic_bookmark_on.xml" value="0.1185" />
+        <entry key="practice1/src/main/res/drawable/ic_like_off.xml" value="0.1185" />
+        <entry key="practice1/src/main/res/drawable/selector_checkbox_like.xml" value="0.1185" />
         <entry key="practice1/src/main/res/layout/activity_main.xml" value="0.2984375" />
         <entry key="practice1/src/main/res/layout/book_search_item.xml" value="0.2984375" />
-        <entry key="practice1/src/main/res/layout/fragment_book_detail.xml" value="0.25" />
+        <entry key="practice1/src/main/res/layout/fragment_book_detail.xml" value="0.1" />
         <entry key="practice1/src/main/res/layout/fragment_book_list.xml" value="0.2984375" />
         <entry key="practice1/src/main/res/layout/fragment_book_search.xml" value="0.2984375" />
         <entry key="sample/src/main/res/layout/activity_main.xml" value="0.15989583333333332" />

@@ -18,10 +18,20 @@ class BookSearchFragment : Fragment() {
 
     private lateinit var bookViewModel: BookViewModel
 
-    private val adapter: BookSearchAdapter = BookSearchAdapter {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .add(binding.containerList.id, BookDetailFragment.newInstance(it))
-            .addToBackStack("BookDetailFragment").commitAllowingStateLoss()
+    private val adapter: BookSearchAdapter = BookSearchAdapter {type ->
+        when(type) {
+            is ItemClickType.ToggleBookmark -> {
+                bookViewModel.toggle(item = type.item)
+            }
+
+            is ItemClickType.GetItem -> {
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .add(binding.containerList.id, BookDetailFragment.newInstance(type.item))
+                    .addToBackStack("BookDetailFragment").commitAllowingStateLoss()
+            }
+
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
