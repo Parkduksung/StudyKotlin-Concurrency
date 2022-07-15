@@ -8,14 +8,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class ArticleRemoteDataSourceImpl @Inject constructor(private val feedListener: FeedListener) : ArticleRemoteDataSource {
+class ArticleRemoteDataSourceImpl @Inject constructor(private val feedListener: FeedListener) :
+    ArticleRemoteDataSource {
 
-    override suspend fun getArticles(feed: Feed): Result<List<Article>> = withContext(Dispatchers.IO) {
-        try {
-            val articleList = feedListener.getArticles(feed)
-            return@withContext Result.Success(articleList)
-        } catch (e: java.lang.Exception) {
-            return@withContext Result.Error(e)
-        }
-    }
+    override suspend fun getArticles(feed: Feed): List<Article> =
+        feedListener.getArticles(feed)
 }

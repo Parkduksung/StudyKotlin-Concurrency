@@ -17,8 +17,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        articleViewModel.getArticles(Feed(name = "npr", url = "https://www.npr.org/rss/rss.php?id=1001"))
-
         articleViewModel.articleViewStateLiveData.observe(this) { viewState ->
             when (viewState) {
                 is ArticleViewModel.ArticleViewState.GetArticles -> {

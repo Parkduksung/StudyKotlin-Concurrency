@@ -2,7 +2,6 @@ package com.example.sample.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
-import com.example.sample.data.repo.ArticleRepository
 import com.example.sample.data.source.remote.ArticleRemoteDataSourceImplTest.Companion.mockArticleList
 import com.example.sample.data.source.remote.ArticleRemoteDataSourceImplTest.Companion.mockFeed
 import com.example.sample.util.Result

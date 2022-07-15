@@ -5,5 +5,5 @@ import com.example.sample.data.model.Feed
 import com.example.sample.util.Result
 
 interface ArticleRemoteDataSource {
-    suspend fun getArticles(feed : Feed) : Result<List<Article>>
+    suspend fun getArticles(feed : Feed) : List<Article>
 }

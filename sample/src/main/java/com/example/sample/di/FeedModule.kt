@@ -1,4 +1,4 @@
-package com.example.sample.ext
+package com.example.sample.di
 
 import com.example.sample.xml.Feed
 import com.example.sample.xml.FeedListener
